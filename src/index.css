@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #171717; /* Slate 900 */
+  --color-bg-light: #f8fafc; /* Slate 50 */
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--color-bg-light);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-font-smoothing: antialiased;
+}
