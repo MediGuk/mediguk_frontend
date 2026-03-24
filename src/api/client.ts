@@ -2,11 +2,11 @@ import { useAuth } from '@/context/AuthContext';
 import { setAccessToken } from '@/utils/auth';
 import { handleSessionExpired } from '@/utils/session';
 
-export async function apiFetch(
-  url: string,
-  options: RequestInit = {}
-) {
-  let token = useAuth().token;
+export async function apiFetch(url: string, options: RequestInit = {}) 
+{
+  let isRefreshing = false;
+  let refreshPromise: Promise<string> | null = null;
+  let { token } = useAuth();
 
   let res = await fetch(url, {
     ...options,
@@ -18,36 +18,45 @@ export async function apiFetch(
     },
   });
 
-  // Si token expirado
+  // Token expirado
   if (res.status === 401) {
-    console.log("Token expirado, intentando refresh...");
+    console.log("🔄 Token expirado");
 
-    const refreshRes = await fetch('http://localhost:8080/auth/refresh', {
+    if (!isRefreshing) {
+      isRefreshing = true;
+
+    refreshPromise = fetch('http://localhost:8080/auth/refresh', {
       method: 'POST',
       credentials: 'include',
-    });
+    })
+      .then(async (refreshRes) => {
+        if (!refreshRes.ok) {
+          throw new Error("Refresh failed");
+        }
 
-    if (!refreshRes.ok) {
-      handleSessionExpired();
-      throw new Error("Session expired");
+        const data = await refreshRes.json();
+
+        localStorage.setItem("accessToken", data.jwtToken);
+
+        return data.jwtToken;
+      })
+      .finally(() => {
+        isRefreshing = false;
+      });
     }
 
-    const refreshData = await refreshRes.json();
-
-    // Guardar nuevo token
-    setAccessToken(refreshData.jwtToken);
-
-    token = refreshData.jwtToken;
+    // Esperar al refresh en curso
+    const newToken = await refreshPromise;
 
     // Repetir request original
     res = await fetch(url, {
-      ...options,
-      credentials: 'include',
-      headers: {
+        ...options,
+        credentials: 'include',
+        headers: {
         ...options.headers,
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+        Authorization: `Bearer ${newToken}`,
+        },
     });
   }
 
