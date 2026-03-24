@@ -1,73 +1,23 @@
-# React + TypeScript + Vite
+# Mediguk Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interfaz principal del Portal de Pacientes (y panel médico) para Mediguk.
 
-Currently, two official plugins are available:
+## 🛠️ Stack Tecnológico Actual
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Framework:** React + TypeScript montado sobre el rapidísimo **Vite**.
+- **Estilos:** Tailwind CSS v4 (última versión, sin configuración pesada, integrado directamente por CSS).
+- **Manejo de Peticiones:** `@tanstack/react-query` para controlar la caché, los reintentos y el estado de carga (`loading`, `error`) de todas las llamadas HTTP.
+- **Tipado de API (¡Importante!):** Utilizamos `openapi-typescript` para generar automáticamente todas nuestras interfaces de TypeScript leyendo directamente el esquema (Swagger/OpenAPI) del Backend en Java. Esto nos garantiza un tipado 100% estricto y sin errores manuales entre las peticiones. Script: `pnpm openapi-typescript http://localhost:8080/v3/api-docs -o src/types/api.ts`
 
-## React Compiler
+## 🚀 Cómo Empezar
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Instalar dependencias con pnpm:
 
-## Expanding the ESLint configuration
+   ```bash
+   pnpm install
+   ```
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+2. Arrancar el servidor de desarrollo:
+   ```bash
+   pnpm dev
+   ```
