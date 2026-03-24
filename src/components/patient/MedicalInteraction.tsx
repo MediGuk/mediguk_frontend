@@ -40,15 +40,6 @@ export const MedicalInteraction = () => {
       {/* AREA 2: Paciente (Textarea + Botones) */}
       <div className="flex-none flex flex-col gap-2 bg-white border border-slate-200 rounded-[2rem] p-4 shadow-sm relative">
         
-        {/* Insertar Imagen (Medio salido del contenedor a la izquierda) */}
-        <button 
-          onClick={handleAddImage}
-          title="Añadir Imagen o Documento"
-          className="absolute -left-6 bottom-4 w-12 h-12 flex items-center justify-center rounded-full bg-white border border-slate-200 shadow-md text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors z-20"
-        >
-          <ImageIcon className="w-5 h-5" />
-        </button>
-
         <textarea
           value={context}
           onChange={(e) => setContext(e.target.value)}
@@ -59,7 +50,16 @@ export const MedicalInteraction = () => {
         {/* BARRA INFERIOR DE BOTONES */}
         <div className="flex items-center justify-between py-2 border-t border-slate-100 pt-4 pl-8 sm:pl-10">
           
-          {/* Micrófono (Restaurado a su tamaño normal) */}
+          {/* Insertar Imagen (Absolute position) */}
+          <button 
+            onClick={handleAddImage}
+            title="Añadir Imagen o Documento"
+            className="absolute -left-6 bottom-4 w-12 h-12 flex items-center justify-center rounded-full bg-white border border-slate-200 shadow-md text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors z-20"
+          >
+            <ImageIcon className="w-5 h-5" />
+          </button>
+
+          {/* Micrófono */}
           <button 
             onClick={handleMic}
             title="Grabar Audio"
@@ -68,7 +68,7 @@ export const MedicalInteraction = () => {
             <MicIcon className="w-7 h-7" />
           </button>
 
-          {/* Enviar Mensaje (Rectángulo Píldora) */}
+          {/* Enviar Mensaje */}
           <button
             onClick={handleSend}
             disabled={!context.trim()} //desactiva el boton si no hay texto quitando espacios en blanco
