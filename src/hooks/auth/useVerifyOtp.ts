@@ -7,6 +7,10 @@ export function useVerifyOtp() {
     mutationFn: verifyOtp,
     onSuccess: (data) => {
       console.log('✅ VERIFY OK', data);
+      if (data.jwtToken) {
+        localStorage.setItem("accessToken", data.jwtToken);
+      }
+      window.location.href = "/dashboard";
     },
     onError: (error) => {
       console.log('❌ VERIFY ERROR', error);
