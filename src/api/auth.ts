@@ -14,7 +14,8 @@ export async function requestOtp(data: RequestOtpDTO): Promise<RequestOtpRespons
   });
 
   if (!res.ok) {
-    throw new Error('Error requesting OTP');
+    const errorData = await res.json();
+    throw new Error(errorData.message || 'Error requesting OTP');
   }
 
   return res.json();

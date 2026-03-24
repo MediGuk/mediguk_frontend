@@ -39,7 +39,7 @@ export const PatientLogin = () => {
         
         {isError && (
           <p className="text-red-500 text-sm mt-2 text-center">
-            Error al enviar OTP
+            {(error as Error).message}
           </p>
         )}
 
