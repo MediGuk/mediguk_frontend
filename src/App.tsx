@@ -1,11 +1,15 @@
-import { PatientLogin } from './components/patient/Login';
+import { Routes, Route } from 'react-router-dom';
+import { PatientLogin } from '@/components/patient/Login';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { PatientDashboard } from '@/components/patient/Dashboard';
 
 function App() {
   return (
-    <div className="app-container">
-      <PatientLogin />
-    </div>
-  )
+    <Routes>
+      <Route path="/" element={<PatientLogin />} />
+      <Route path="/dashboard" element={<ProtectedRoute><PatientDashboard /></ProtectedRoute>} />
+    </Routes>
+  );
 }
 
 export default App;
