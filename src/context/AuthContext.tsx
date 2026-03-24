@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { getAccessToken, clearAccessToken } from '@/utils/auth';
 
 type AuthContextType = {
   token: string | null;
@@ -10,7 +11,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(
-    localStorage.getItem("accessToken")
+    getAccessToken()
   );
 
   const login = (newToken: string) => {
@@ -19,7 +20,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem("accessToken");
+    clearAccessToken();
     setToken(null);
   };
 
