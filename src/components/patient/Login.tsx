@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRequestOtp } from '@/hooks/auth/useRequestOtp';
 import { useVerifyOtp } from '@/hooks/auth/useVerifyOtp';
 import { FullScreenLoader } from '@/components/FullScreenLoader';
+import { CopyToClipboard } from '@/components/CopyToClipboard';
 
 export const PatientLogin = () => {
   const [dni, setDni] = useState('');
@@ -39,9 +40,10 @@ export const PatientLogin = () => {
           PORTAL DEL PACIENTE
         </h1>
         
-        <p className="mb-4 text-sm text-gray-600 text-center">
-          Inserta el DNI de prueba: <strong>12345678A</strong>
-        </p>
+        <div className="mb-4 text-sm text-gray-600 flex items-center justify-center gap-1">
+          Inserta el DNI de prueba:
+          <CopyToClipboard text="12345678A" />
+        </div>
         
         {/* 1. Input DNI/NIE */}
         <div className="mb-4">
