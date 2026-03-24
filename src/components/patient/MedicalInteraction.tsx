@@ -15,7 +15,7 @@ export const MedicalInteraction = () => {
   };
 
   const handleAddImage = () => {
-    console.log("Añadir imagen");
+    alert("La subida de imágenes estará disponible próximamente.");
   };
 
   return (
