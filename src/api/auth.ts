@@ -15,7 +15,7 @@ export async function requestOtp(data: RequestOtpDTO): Promise<RequestOtpRespons
 
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.message || 'Error requesting OTP');
+    throw new Error(errorData.error || errorData.message || 'Error requesting OTP');
   }
 
   return res.json();
@@ -28,13 +28,13 @@ export async function verifyOtp(data: VerifyOtpDTO): Promise<AuthResponse> {
     headers: {
       'Content-Type': 'application/json',
     },
-    // credentials: 'include', //FUTURE: OTP-session cookie with the OTP
+    credentials: 'include',
     body: JSON.stringify(data),
   });
 
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.message || 'Error verifying OTP');
+    throw new Error(errorData.error || errorData.message || 'Error verifying OTP');
   }
 
   return res.json();

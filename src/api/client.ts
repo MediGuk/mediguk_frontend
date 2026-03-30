@@ -1,6 +1,4 @@
 import { useAuth } from '@/context/AuthContext';
-import { setAccessToken } from '@/utils/auth';
-import { handleSessionExpired } from '@/utils/session';
 
 export async function apiFetch(url: string, options: RequestInit = {}) 
 {
