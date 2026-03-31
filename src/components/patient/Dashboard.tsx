@@ -13,7 +13,7 @@ export const PatientDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col relative w-full">
+    <div className="h-screen bg-[#f8fafc] flex flex-col relative w-full overflow-hidden">
       {/* Botón de Logout Minimalista */}
       <button 
         onClick={handleLogout}
