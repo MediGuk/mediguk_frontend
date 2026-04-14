@@ -109,18 +109,16 @@ export const MedicalInteraction = forwardRef((props, ref) => {
                      </div>
                    )}
 
-                   {/* Mensajes de la IA (Lista de Preguntas) */}
-                   <div className="flex flex-col gap-3">
-                     {latestResponse?.questions.map((q, idx) => (
-                       <p 
-                         key={idx} 
-                         className={`text-lg sm:text-xl leading-tight font-medium ${latestResponse?.is_emergency ? 'text-red-900' : 'text-slate-800'} animate-in fade-in slide-in-from-left-4 duration-500`}
-                         style={{ animationDelay: `${idx * 150}ms` }}
-                       >
-                         {q}
-                       </p>
-                     ))}
-                   </div>
+                    {/* Mensaje de la IA (Pregunta Única) */}
+                    <div className="flex flex-col gap-3">
+                      {latestResponse?.question && (
+                        <p 
+                          className={`text-lg sm:text-xl leading-tight font-medium ${latestResponse?.is_emergency ? 'text-red-900' : 'text-slate-800'} animate-in fade-in slide-in-from-left-4 duration-500`}
+                        >
+                          {latestResponse.question}
+                        </p>
+                      )}
+                    </div>
 
                    {/* Estado Completado */}
                    {latestResponse?.is_complete && (

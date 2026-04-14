@@ -3,7 +3,7 @@ import { apiFetch } from '@/api/client';
 const GO_BACKEND_URL = 'http://localhost:8090/api/triage-context';
 
 export interface TriageResponse {
-  questions: string[];
+  question: string;
   case_title: string;
   is_complete: boolean;
   is_emergency: boolean;
