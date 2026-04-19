@@ -29,6 +29,18 @@ export async function sendTriageContext(
     body: formData,
   });
 }
+
+const TRANSCRIBE_URL = 'http://localhost:8090/api/transcribe';
+
+export async function transcribeAudio(audioBlob: Blob): Promise<{ text: string }> {
+  const formData = new FormData();
+  formData.append('audio', audioBlob, 'recording.webm');
+
+  return apiFetch(TRANSCRIBE_URL, {
+    method: 'POST',
+    body: formData,
+  });
+}
 export interface TriageHistoryItem {
   id: string;
   category: string;

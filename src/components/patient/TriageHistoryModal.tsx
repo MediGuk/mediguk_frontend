@@ -134,7 +134,7 @@ export const TriageHistoryModal: React.FC<Props> = ({ history, onClose }) => {
                              <span>📋</span> Registro Literal de Conversación
                           </div>
                           
-                          <div className="space-y-6">
+                          <div className="space-y-6 max-h-[350px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
                             {item.fullTranscript && item.fullTranscript.length > 0 ? (
                               item.fullTranscript.map((entry, idx) => (
                                 <div key={idx} className="space-y-2">

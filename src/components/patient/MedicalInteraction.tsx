@@ -1,6 +1,6 @@
-import { useState, forwardRef, useImperativeHandle } from 'react';
+import { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import { MicIcon, SendIcon } from '@/components/Icons';
-import { sendTriageContext } from '@/api/triageContext';
+import { sendTriageContext, transcribeAudio } from '@/api/triageContext';
 import type { TriageResponse } from '@/api/triageContext';
 
 
@@ -10,6 +10,60 @@ export const MedicalInteraction = forwardRef((props, ref) => {
   const [loading, setLoading] = useState(false);
   const [isPendingReset, setIsPendingReset] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Audio Recording States
+  const [isRecording, setIsRecording] = useState(false);
+  const [isReviewing, setIsReviewing] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(blob);
+        stream.getTracks().forEach(track => track.stop()); // Apagar micro
+        
+        // --- NUEVO FLUJO: Transcribir y Revisar ---
+        setLoading(true);
+        setError(null);
+        try {
+          const { text } = await transcribeAudio(blob);
+          setContext(text);
+          setIsReviewing(true); // Entramos en modo "Confirmación"
+        } catch (err: any) {
+          setError("Error en la transcripción. Prueba a escribirlo o grabarlo de nuevo.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      recorder.start();
+      setIsRecording(true);
+      setIsReviewing(false); // Reset por si veníamos de otra
+      setError(null);
+    } catch (err: any) {
+      console.error("Error accessing microphone:", err);
+      setError("No se ha podido acceder al micrófono. Por favor, revisa los permisos.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
 
   const handleSend = async (messageOverride?: string, isFinal: boolean = false) => {
     const messageToSend = typeof messageOverride === 'string' ? messageOverride : context.trim();
@@ -23,19 +77,23 @@ export const MedicalInteraction = forwardRef((props, ref) => {
     
     setLoading(true);
     setError(null);
+    setIsReviewing(false); // Salimos del modo revisión al enviar
 
     try {
-      const response = await sendTriageContext(messageToSend, isFinal, undefined, undefined, shouldReset);
+      // Si mandamos audio, el backend transcribirá y responderá
+      const response = await sendTriageContext(messageToSend, isFinal, undefined, audioBlob || undefined, shouldReset);
       console.log("Mediguk Server Response:", response);
       
       if (isFinal) {
         alert("¡Informe enviado con éxito al equipo médico! El caso está cerrado.");
         setLatestResponse(null);
         setContext('');
+        setAudioBlob(null);
       } else {
         setLatestResponse(response);
         setContext(''); // WhatsApp style: Limpiamos al recibir respuesta OK
         setIsPendingReset(false); // Reset consumido con éxito
+        setAudioBlob(null);
       }
     } catch (err: any) {
       console.error("Error sending triage message:", err);
@@ -165,11 +223,21 @@ export const MedicalInteraction = forwardRef((props, ref) => {
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
-              handleSend();
+              if (isReviewing) {
+                handleSend();
+              } else {
+                handleSend();
+              }
             }
           }}
-          placeholder={latestResponse?.is_complete ? "Triaje completo..." : "DIME QUÉ TE PASA..."}
-          className="w-full px-4 py-2 bg-transparent focus:outline-none resize-none h-20 sm:h-24 text-slate-700 text-base placeholder-slate-400"
+          placeholder={
+            loading && !isReviewing 
+              ? "Transcribiendo audio..." 
+              : (latestResponse?.is_complete ? "Triaje completo..." : "DIME QUÉ TE PASA...")
+          }
+          className={`w-full px-4 py-2 bg-transparent focus:outline-none resize-none h-20 sm:h-24 text-slate-700 text-base placeholder-slate-400 transition-all ${
+            isReviewing ? 'bg-blue-50/50 rounded-xl ring-2 ring-blue-100' : ''
+          }`}
           disabled={loading || latestResponse?.is_complete}
         ></textarea>
         
@@ -177,23 +245,57 @@ export const MedicalInteraction = forwardRef((props, ref) => {
         <div className="flex items-center justify-between py-2 border-t border-slate-100 pt-4 pl-4 sm:pl-6">
           
           <div className="flex gap-2">
-            {/* Botón Audio */}
-            <button 
-              onClick={() => handleDisabledAction("La grabación de audio")}
-              className="w-12 h-12 flex items-center justify-center rounded-full border border-slate-200 text-slate-400 hover:text-red-500 transition-all"
-              disabled={latestResponse?.is_complete}
-            >
-              <MicIcon className="w-6 h-6" />
-            </button>
+            {isReviewing ? (
+              <>
+                {/* Botón DESCARTAR Transcripción */}
+                <button 
+                  onClick={() => {
+                    setContext('');
+                    setIsReviewing(false);
+                    setAudioBlob(null);
+                  }}
+                  className="px-4 h-11 flex items-center justify-center rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition-all font-bold gap-2"
+                  title="Descartar y borrar"
+                >
+                  <span className="text-lg">✕</span>
+                  <span className="text-xs uppercase tracking-wider">Descartar</span>
+                </button>
+
+                {/* Botón CONFIRMAR Transcripción (Manda al Triaje) */}
+                <button 
+                  onClick={() => handleSend()}
+                  className="px-6 h-11 flex items-center justify-center rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all font-bold gap-2 shadow-lg shadow-blue-100 animate-in zoom-in duration-300"
+                  title="Confirmar y enviar al médico"
+                >
+                  <span className="text-lg">✅</span>
+                  <span className="text-xs uppercase tracking-wider">Confirmar</span>
+                </button>
+              </>
+            ) : (
+              /* Botón Audio Dinámico */
+              <button 
+                onClick={isRecording ? stopRecording : startRecording}
+                className={`w-12 h-12 flex items-center justify-center rounded-full border transition-all duration-300 ${
+                  isRecording 
+                    ? 'bg-red-500 border-red-600 text-white animate-pulse shadow-lg shadow-red-200' 
+                    : 'bg-white border-slate-200 text-slate-400 hover:text-blue-500 hover:border-blue-200'
+                }`}
+                disabled={latestResponse?.is_complete || (loading && !isRecording)}
+                title={isRecording ? "Detener grabación" : "Grabar mensaje de voz"}
+              >
+                <MicIcon className={`w-6 h-6 ${isRecording ? 'scale-110' : ''}`} />
+              </button>
+            )}
           </div>
 
-          {/* Botón Enviar Principal / Finalizar */}
-          {latestResponse?.is_complete ? (
-            <button
-              onClick={() => handleSend(undefined, true)}
-              disabled={loading}
-              className="px-8 h-12 flex items-center justify-center rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 transition-all font-bold shadow-lg shadow-emerald-200 animate-in fade-in slide-in-from-right-4 duration-500"
-            >
+          {/* Botón Enviar Principal / Finalizar (Oculto si estamos revisando para forzar el uso de los otros botones) */}
+          {!isReviewing && (
+            latestResponse?.is_complete ? (
+                <button
+                  onClick={() => handleSend(undefined, true)}
+                  disabled={loading}
+                  className="px-8 h-12 flex items-center justify-center rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 transition-all font-bold shadow-lg shadow-emerald-200 animate-in fade-in slide-in-from-right-4 duration-500"
+                >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               ) : (
@@ -217,7 +319,7 @@ export const MedicalInteraction = forwardRef((props, ref) => {
                 </div>
               )}
             </button>
-          )}
+          ))}
           
         </div>
       </div>
