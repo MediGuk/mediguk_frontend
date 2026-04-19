@@ -29,3 +29,29 @@ export async function sendTriageContext(
     body: formData,
   });
 }
+export interface TriageHistoryItem {
+  id: string;
+  category: string;
+  status: string;
+  fullTranscript?: {
+    question: string;
+    answer: string;
+  }[];
+  stage1Details: {
+    specialtyDetails?: {
+      aiSummary: string;
+      mainSymptom: string;
+      suspectedDiagnosis: string;
+      systemAffected: string;
+      generalState: string;
+      requiresUrgentLab: boolean;
+      urgencyLevel?: number; // Agregamos este por si acaso lo mandamos luego
+    }
+  }
+}
+
+export async function fetchTriageHistory(): Promise<TriageHistoryItem[]> {
+  return apiFetch('http://localhost:8080/api/triage/history', {
+    method: 'GET',
+  });
+}
